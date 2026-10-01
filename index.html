@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KryoClient.org — Minecraft Client</title>
+  <style>
+    *{box-sizing:border-box}
+    :root{
+      --bg:#07090e;
+      --panel:rgba(20,24,34,.72);
+      --line:rgba(255,255,255,.11);
+      --muted:#9298a6;
+      --text:#f4f6fb;
+      --accent:#dfe4ec;
+    }
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      color:var(--text);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:
+        radial-gradient(circle at 50% 28%, rgba(86,103,133,.22), transparent 35%),
+        radial-gradient(circle at 80% 55%, rgba(55,77,108,.16), transparent 28%),
+        linear-gradient(180deg,#111722 0%,#080b11 52%,#050609 100%);
+      overflow-x:hidden;
+    }
+    body:before{
+      content:"";
+      position:fixed; inset:0; pointer-events:none;
+      background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.68) 78%,#050609 100%);
+      z-index:-1;
+    }
+    .glow{
+      position:fixed;width:520px;height:520px;border-radius:50%;
+      background:rgba(112,132,164,.08);filter:blur(90px);
+      left:50%;top:20%;transform:translate(-50%,-50%);pointer-events:none;
+    }
+    .wrap{width:min(1120px,calc(100% - 36px));margin:auto}
+    nav{
+      margin-top:24px;height:58px;border:1px solid var(--line);
+      border-radius:18px;background:rgba(19,23,32,.72);
+      backdrop-filter:blur(22px);display:flex;align-items:center;
+      padding:0 12px 0 18px;box-shadow:0 12px 50px rgba(0,0,0,.28);
+    }
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}
+    .logo{
+      width:25px;height:25px;border:2px solid #e8ecf4;border-radius:7px;
+      transform:rotate(45deg);display:grid;place-items:center;
+    }
+    .logo i{display:block;width:8px;height:8px;background:#e8ecf4;border-radius:2px}
+    .navlinks{display:flex;gap:8px;margin-left:auto;margin-right:10px}
+    .navlinks a,.lang{
+      color:#9fa5b3;text-decoration:none;font-size:14px;font-weight:600;
+      padding:10px 13px;border-radius:10px;transition:.2s;
+    }
+    .navlinks a:hover,.lang:hover{color:#fff;background:rgba(255,255,255,.05)}
+    .login{
+      color:#fff;text-decoration:none;font-size:14px;font-weight:700;
+      padding:10px 18px;border:1px solid var(--line);border-radius:12px;
+      background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03));
+    }
+    .hero{text-align:center;padding:70px 0 34px}
+    .eyebrow{
+      display:inline-flex;align-items:center;gap:8px;color:#aeb5c2;
+      font-size:13px;border:1px solid var(--line);background:rgba(255,255,255,.035);
+      padding:7px 11px;border-radius:999px;margin-bottom:22px;
+    }
+    .dot{width:7px;height:7px;background:#cfd6e2;border-radius:50%;box-shadow:0 0 15px #cfd6e2}
+    h1{
+      font-size:clamp(44px,7vw,78px);line-height:.98;letter-spacing:-4px;
+      max-width:920px;margin:0 auto;font-weight:800;
+    }
+    .gradient{color:#b8c0cd}
+    .sub{max-width:620px;margin:24px auto 0;color:#9da5b4;line-height:1.7;font-size:16px}
+    .actions{display:flex;justify-content:center;gap:12px;margin-top:28px}
+    button,.btn{
+      border:0;text-decoration:none;cursor:pointer;font:inherit;font-weight:750;
+      padding:13px 21px;border-radius:12px;transition:.22s;
+    }
+    .primary{
+      color:#11151c;background:#f1f3f7;
+      box-shadow:0 8px 28px rgba(255,255,255,.08);
+    }
+    .primary:hover{transform:translateY(-2px);background:#fff}
+    .secondary{
+      color:#e4e8ef;background:rgba(255,255,255,.025);border:1px solid var(--line);
+    }
+    .secondary:hover{background:rgba(255,255,255,.07)}
+    .stats{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:9px;
+      margin:20px auto 0;max-width:950px;
+    }
+    .stat{
+      border:1px solid var(--line);background:rgba(14,18,26,.65);
+      border-radius:14px;padding:16px;text-align:left;
+    }
+    .stat small{display:block;color:#777f8f;font-size:12px;margin-bottom:6px}
+    .stat strong{font-size:20px}
+    section{padding:92px 0}
+    .section-head{text-align:center;margin-bottom:30px}
+    .section-head h2{font-size:34px;letter-spacing:-1.5px;margin:0 0 10px}
+    .section-head p{color:var(--muted);margin:0}
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .card{
+      border:1px solid var(--line);background:linear-gradient(145deg,rgba(24,29,40,.78),rgba(10,13,19,.72));
+      border-radius:20px;padding:24px;min-height:190px;
+      box-shadow:0 18px 60px rgba(0,0,0,.16);
+    }
+    .icon{
+      width:42px;height:42px;border-radius:12px;border:1px solid var(--line);
+      display:grid;place-items:center;background:rgba(255,255,255,.04);margin-bottom:18px;
+    }
+    .card h3{margin:0 0 8px;font-size:18px}.card p{color:#8d95a4;line-height:1.6;margin:0;font-size:14px}
+    .pricing{
+      max-width:760px;margin:auto;border:1px solid var(--line);border-radius:24px;
+      padding:10px;background:rgba(13,16,23,.72);display:grid;grid-template-columns:1.2fr .8fr;
+    }
+    .pricebox{padding:30px}.pricebox h3{font-size:25px;margin:0 0 8px}.pricebox p{color:var(--muted)}
+    .price{font-size:48px;font-weight:800;letter-spacing:-2px;margin:22px 0}.price span{font-size:14px;color:var(--muted);letter-spacing:0}
+    .list{padding:16px;background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:18px}
+    .list div{padding:11px 2px;color:#c0c6d1;font-size:14px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .list div:last-child{border:0}
+    footer{border-top:1px solid var(--line);padding:28px 0;color:#697180;font-size:13px}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.68);backdrop-filter:blur(12px);display:none;place-items:center;padding:20px;z-index:20}
+    .modal.open{display:grid}
+    .modal-box{width:min(460px,100%);border:1px solid var(--line);border-radius:22px;background:#11151e;padding:26px;box-shadow:0 30px 100px #000}
+    .modal-box h3{margin:0 0 8px;font-size:25px}.modal-box p{color:var(--muted);line-height:1.6}
+    .close{float:right;background:transparent;color:#aab1bd;border:1px solid var(--line);padding:7px 10px}
+    @media(max-width:760px){
+      .navlinks{display:none}.hero{padding-top:55px}h1{letter-spacing:-2.5px}
+      .stats{grid-template-columns:repeat(2,1fr)}.cards{grid-template-columns:1fr}
+      .pricing{grid-template-columns:1fr}.pricebox{padding:24px}
+    }
+  
+.auth-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(10px);z-index:99;place-items:center;padding:20px}
+.auth-modal.open{display:grid}.auth-box{width:min(430px,100%);background:#0d1119;border:1px solid #ffffff1c;border-radius:20px;padding:28px;box-shadow:0 30px 100px #000}
+.auth-box h2{font-size:28px;margin:0 0 7px}.auth-box p{font-size:14px;color:#8f97a5;margin:0 0 22px}
+.auth-box input{width:100%;padding:13px 14px;margin:7px 0;border-radius:11px;border:1px solid #ffffff18;background:#070a10;color:#fff;outline:none}
+.auth-box input:focus{border-color:#ffffff45}.auth-actions{margin-top:12px}.auth-actions button{width:100%;border:0;cursor:pointer}
+.auth-switch{margin-top:17px;text-align:center;font-size:13px;color:#777f8d}.auth-switch a{color:#fff;cursor:pointer}
+.auth-close{float:right;background:transparent!important;color:#8d95a3!important;font-size:20px!important;padding:0!important;width:auto!important;border:0}
+</style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="wrap">
+    <nav>
+      <div class="brand"><span class="logo"><i></i></span> KryoClient.org</div>
+      <div class="navlinks">
+        <a href="#buy">Купить</a><a href="#features">Возможности</a><a href="#about">О клиенте</a>
+        <span class="lang">◉ RU</span>
+      </div>
+      <a class="login" href="#" onclick="openModal(event)">↪ Войти</a>
+    </nav>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow"><span class="dot"></span> Новый релиз уже доступен</div>
+        <h1>Эффективный и<br><span class="gradient">красивый клиент</span><br>для Minecraft</h1>
+        <p class="sub">Современный интерфейс, гибкая настройка и полезные игровые возможности. Всё необходимое — в одном стильном клиенте.</p>
+        <div class="actions">
+          <a class="btn primary" href="#buy">Приобрести ↗</a>
+          <a class="btn secondary" href="#features">Узнать больше</a>
+        </div>
+        <div class="stats">
+          <div class="stat"><small>Пользователей</small><strong>96 667</strong></div>
+          <div class="stat"><small>Запусков</small><strong>4 383 652</strong></div>
+          <div class="stat"><small>Обновлений</small><strong>1 831</strong></div>
+          <div class="stat"><small>Дней с открытия</small><strong>2 086</strong></div>
+        </div>
+      </section>
+
+      <section id="features">
+        <div class="section-head">
+          <h2>Возможности</h2>
+          <p>Минималистичный клиент без лишнего визуального шума.</p>
+        </div>
+        <div class="cards">
+          <article class="card"><div class="icon">✦</div><h3>Чистый интерфейс</h3><p>Тёмная UI-система, плавные анимации и аккуратные панели настроек.</p></article>
+          <article class="card"><div class="icon">⚙</div><h3>Гибкая настройка</h3><p>Разделяйте параметры по категориям и быстро меняйте конфигурацию под себя.</p></article>
+          <article class="card"><div class="icon">↻</div><h3>Регулярные обновления</h3><p>Версии и изменения отображаются прямо на странице клиента.</p></article>
+        </div>
+      </section>
+
+      <section id="buy">
+        <div class="section-head"><h2>Выберите доступ</h2><p>Пример блока покупки — подключите свой способ оплаты.</p></div>
+        <div class="pricing">
+          <div class="pricebox">
+            <h3>Premium Access</h3>
+            <p>Доступ к клиенту и обновлениям.</p>
+            <div class="price">499 ₽ <span>/ месяц</span></div>
+            <button class="primary" onclick="openModal(event)">Приобрести</button>
+          </div>
+          <div class="list">
+            <div>✓ Все основные функции</div>
+            <div>✓ Обновления клиента</div>
+            <div>✓ Поддержка пользователей</div>
+            <div>✓ Личный кабинет</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer id="about">© 2026 KryoClient.org · Minecraft — товарный знак Mojang Studios. Сайт является демонстрационным шаблоном.</footer>
+  </div>
+
+  <div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
+    <div class="modal-box">
+      <button class="close" onclick="closeModal()">✕</button>
+      <h3>Вход в аккаунт</h3>
+      <p>Это демонстрационная форма. Подключите свой backend или OAuth, чтобы сделать авторизацию рабочей.</p>
+      <button class="primary" onclick="closeModal()">Понятно</button>
+    </div>
+  </div>
+
+  <script>
+    function openModal(e){ if(e)e.preventDefault(); document.getElementById('modal').classList.add('open'); }
+    function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+  </script>
+
+<div class="auth-modal" id="authModal" onclick="if(event.target===this)closeAuth()">
+<div class="auth-box">
+<button class="auth-close" onclick="closeAuth()">×</button>
+<h2 id="authTitle">Вход</h2>
+<p id="authDesc">Войдите в свой аккаунт KryoClient.org.</p>
+<form onsubmit="submitAuth(event)">
+<input id="authName" type="text" placeholder="Никнейм" autocomplete="username" required style="display:none">
+<input id="authEmail" type="email" placeholder="Email" autocomplete="email" required>
+<input id="authPassword" type="password" placeholder="Пароль" minlength="6" required>
+<input id="authPassword2" type="password" placeholder="Повторите пароль" minlength="6" required style="display:none">
+<div class="auth-actions"><button class="btn buy" id="authSubmit">Войти</button></div>
+</form>
+<div class="auth-switch" id="authSwitch">Нет аккаунта? <a onclick="openAuth('register')">Зарегистрироваться</a></div>
+</div></div>
+<script>
+let authMode = 'login';
+
+function openAuth(mode) {
+  authMode = mode;
+  document.getElementById('authModal').classList.add('open');
+  const register = mode === 'register';
+  document.getElementById('authTitle').textContent = register ? 'Регистрация' : 'Вход';
+  document.getElementById('authDesc').textContent = register
+    ? 'Создайте настоящий аккаунт KryoClient.org.'
+    : 'Войдите в свой аккаунт KryoClient.org.';
+  document.getElementById('authName').style.display = register ? 'block' : 'none';
+  document.getElementById('authPassword2').style.display = register ? 'block' : 'none';
+  document.getElementById('authName').required = register;
+  document.getElementById('authPassword2').required = register;
+  document.getElementById('authSubmit').textContent = register ? 'Зарегистрироваться' : 'Войти';
+  document.getElementById('authSwitch').innerHTML = register
+    ? 'Уже есть аккаунт? <a onclick="openAuth(\'login\')">Войти</a>'
+    : 'Нет аккаунта? <a onclick="openAuth(\'register\')">Зарегистрироваться</a>';
+}
+
+function closeAuth() {
+  document.getElementById('authModal').classList.remove('open');
+}
+
+async function submitAuth(e) {
+  e.preventDefault();
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const name = document.getElementById('authName').value.trim();
+
+  if (authMode === 'register' &&
+      password !== document.getElementById('authPassword2').value) {
+    alert('Пароли не совпадают');
+    return;
+  }
+
+  const endpoint = authMode === 'register' ? '/api/register' : '/api/login';
+  const payload = authMode === 'register'
+    ? { name, email, password }
+    : { email, password };
+
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.error || 'Произошла ошибка');
+      return;
+    }
+
+    closeAuth();
+    document.querySelector('form').reset();
+    await updateLogin();
+    alert(authMode === 'register' ? 'Регистрация успешна!' : 'Вы вошли в аккаунт!');
+  } catch (err) {
+    alert('Сервер недоступен. Запустите app.py.');
+  }
+}
+
+async function updateLogin() {
+  const button = document.querySelector('.login');
+  if (!button) return;
+
+  try {
+    const response = await fetch('/api/me');
+    const data = await response.json();
+
+    if (data.user) {
+      button.textContent = 'Аккаунт: ' + data.user.name;
+      button.onclick = async (e) => {
+        e.preventDefault();
+        if (!confirm('Выйти из аккаунта?')) return;
+        await fetch('/api/logout', {method: 'POST'});
+        updateLogin();
+      };
+    } else {
+      button.textContent = '↪ Войти';
+      button.onclick = (e) => {
+        e.preventDefault();
+        openAuth('login');
+      };
+    }
+  } catch (_) {}
+}
+
+updateLogin();
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeAuth();
+});
+</script>
+</body>
+</html>
